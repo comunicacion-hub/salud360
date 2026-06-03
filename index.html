@@ -234,8 +234,9 @@
   @media(max-width:900px){.curves-grid{grid-template-columns:1fr;}}
 
   .hist-wrap{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);overflow:hidden;}
-  .hist-head{display:grid;grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr 1fr 1fr;gap:10px;padding:14px 22px;background:#f6faf9;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.6px;}
-  .hist-row{display:grid;grid-template-columns:1.2fr 0.8fr 0.8fr 0.8fr 1fr 1fr;gap:10px;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,0.04);align-items:center;font-size:13px;}
+  .hist-head{display:grid;grid-template-columns:1.1fr 0.8fr 0.7fr 0.7fr 0.7fr 0.7fr 76px;gap:10px;padding:14px 22px;background:#f6faf9;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.6px;}
+  .hist-row{display:grid;grid-template-columns:1.1fr 0.8fr 0.7fr 0.7fr 0.7fr 0.7fr 76px;gap:10px;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,0.04);align-items:center;font-size:13px;}
+  .hist-acts{display:flex;gap:6px;justify-content:flex-end;}
   .hist-row:last-child{border-bottom:none;}
   .hist-z{font-weight:700;}
   @media(max-width:768px){
@@ -429,7 +430,7 @@
 
         <div style="font-size:16px;font-weight:700;color:var(--text);margin-top:4px;">Historial de mediciones</div>
         <div class="hist-wrap">
-          <div class="hist-head"><div>Fecha</div><div>Edad</div><div>Peso</div><div>Talla</div><div>Z T/E</div><div>Z P/E</div></div>
+          <div class="hist-head"><div>Fecha</div><div>Edad</div><div>Peso</div><div>Talla</div><div>Z T/E</div><div>Z P/E</div><div></div></div>
           <div id="hist-body"></div>
         </div>
       </div>
@@ -819,8 +820,8 @@ function renderAlertas(){
         <div><div class="alert-name">${e.n.Nombres}</div><div class="alert-meta">${e.n.Comunidad||'—'} · ${metaTxt}</div></div>
       </div>
       <div class="alert-z-row">
-        <div class="z-chip"><div class="z-chip-lbl">Talla / Edad</div><div class="z-chip-val">${e.zT==null?'—':e.zT}</div>${zTtag}</div>
-        <div class="z-chip"><div class="z-chip-lbl">Peso / Edad</div><div class="z-chip-val">${e.zP==null?'—':e.zP}</div>${zPtag}</div>
+        <div class="z-chip"><div class="z-chip-lbl">Talla / Edad</div><div class="z-chip-val">${e.zT==null?'—':fmtNum(e.zT)}</div>${zTtag}</div>
+        <div class="z-chip"><div class="z-chip-lbl">Peso / Edad</div><div class="z-chip-val">${e.zP==null?'—':fmtNum(e.zP)}</div>${zPtag}</div>
       </div>
     </div>`;
   }).join('');
@@ -928,13 +929,18 @@ function renderHistorial(){
   if(!ms.length){body.innerHTML='<div class="empty" style="padding:36px;"><div class="empty-sub">Sin mediciones registradas</div></div>';return;}
   body.innerHTML=ms.map(m=>{
     const cls=v=>v==null||isNaN(v)?'':v<-3?'z-sev':v<-2?'z-mod':'z-ok';
+    const id=m.ID_Medicion;
     return `<div class="hist-row">
       <div style="font-weight:600;">${fmtFecha(m.Fecha)}</div>
       <div class="col-txt">${m._edad!=null?edadTexto(m._edad):'—'}</div>
-      <div class="col-txt">${isNaN(m._peso)?'—':m._peso+' kg'}</div>
-      <div class="col-txt">${isNaN(m._talla)?'—':m._talla+' cm'}</div>
-      <div class="hist-z ${cls(m._zt)}">${m._zt==null||isNaN(m._zt)?'—':m._zt}</div>
-      <div class="hist-z ${cls(m._zp)}">${m._zp==null||isNaN(m._zp)?'—':m._zp}</div>
+      <div class="col-txt">${isNaN(m._peso)?'—':fmtNum(m._peso)+' kg'}</div>
+      <div class="col-txt">${isNaN(m._talla)?'—':fmtNum(m._talla)+' cm'}</div>
+      <div class="hist-z ${cls(m._zt)}">${m._zt==null||isNaN(m._zt)?'—':fmtNum(m._zt)}</div>
+      <div class="hist-z ${cls(m._zp)}">${m._zp==null||isNaN(m._zp)?'—':fmtNum(m._zp)}</div>
+      <div class="hist-acts">
+        <button class="icon-btn" title="Editar" onclick="editMedicion('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="icon-btn del" title="Eliminar" onclick="delMedicion('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1026,19 +1032,52 @@ async function saveInfante(){
 }
 
 // ════════════ MODAL MEDICIÓN ════════════
+let editingMedicion=null;
 function openMedicionModal(){
   if(!currentFicha){toast('Abre una ficha primero',true);return;}
-  document.getElementById('med-sub').textContent=currentFicha.Nombres;
+  editingMedicion=null;
+  document.querySelector('#m-medicion .modal-title').textContent='Nueva medición';
+  document.getElementById('md-sub').textContent=currentFicha.Nombres;
   document.getElementById('md-fecha').value=new Date().toISOString().slice(0,10);
   document.getElementById('md-actividad').value='Consejería personalizada';
   document.getElementById('md-peso').value='';
   document.getElementById('md-talla').value='';
   document.getElementById('md-obs').value='';
   document.getElementById('md-zpreview').style.display='none';
+  document.getElementById('md-save').textContent='Guardar medición';
   openModal('m-medicion');
+}
+function editMedicion(id){
+  const m=mediciones.find(x=>String(x.ID_Medicion)===String(id)); if(!m){toast('Medición no encontrada',true);return;}
+  editingMedicion=id;
+  document.querySelector('#m-medicion .modal-title').textContent='Editar medición';
+  document.getElementById('med-sub').textContent=currentFicha.Nombres;
+  document.getElementById('md-fecha').value=fmtInputDate(m.Fecha);
+  document.getElementById('md-actividad').value=m.Tipo_Actividad||'Consejería personalizada';
+  document.getElementById('md-peso').value=fmtNum(numCO(m.Peso_kg));
+  document.getElementById('md-talla').value=fmtNum(numCO(m.Talla_cm));
+  document.getElementById('md-obs').value=m.Observaciones||'';
+  document.getElementById('md-save').textContent='Guardar cambios';
+  previewZ();
+  openModal('m-medicion');
+}
+function delMedicion(id){
+  const m=mediciones.find(x=>String(x.ID_Medicion)===String(id)); if(!m)return;
+  askConfirm('¿Eliminar medición?','Se eliminará la medición del '+fmtFecha(m.Fecha)+'. Esta acción no se puede deshacer.',async()=>{
+    try{
+      const r=await apiPost('eliminarMedicion',{ID_Medicion:id});
+      if(r&&r.error) throw new Error(r.error);
+      mediciones=mediciones.filter(x=>String(x.ID_Medicion)!==String(id));
+      saveCache(); toast('Medición eliminada');
+      renderHistorial(); drawCurves(); renderAll();
+      setTimeout(reloadAll,1500);
+    }catch(e){toast('No se pudo eliminar: '+(e.message||'error'),true);}
+  });
 }
 // convierte texto con coma o punto a número (7,4 → 7.4)
 function numCO(v){if(v==null)return NaN;return parseFloat(String(v).replace(',','.').trim());}
+// formatea número con coma decimal para mostrar (8.6 → "8,6")
+function fmtNum(v){if(v==null||isNaN(v))return '—';return String(v).replace('.',',');}
 function previewZ(){
   const peso=numCO(document.getElementById('md-peso').value);
   const talla=numCO(document.getElementById('md-talla').value);
@@ -1051,8 +1090,8 @@ function previewZ(){
   const col=v=>v==null?'':v<-3?'#d11e54':v<-2?'#b97f08':'#0a9e83';
   document.getElementById('md-zpreview').style.display='flex';
   const et=document.getElementById('md-zt'), ep=document.getElementById('md-zp');
-  et.textContent=zt==null?'—':zt; et.style.color=col(zt);
-  ep.textContent=zp==null?'—':zp; ep.style.color=col(zp);
+  et.textContent=zt==null?'—':fmtNum(zt); et.style.color=col(zt);
+  ep.textContent=zp==null?'—':fmtNum(zp); ep.style.color=col(zp);
   document.getElementById('md-edad').textContent=edadTexto(mes);
 }
 async function saveMedicion(){
@@ -1076,17 +1115,27 @@ async function saveMedicion(){
     Observaciones:document.getElementById('md-obs').value.trim(),
     ID_Usuario:currentUser.email
   };
-  const btn=document.getElementById('md-save'); btn.disabled=true; btn.textContent='Guardando...';
+  const btn=document.getElementById('md-save'); btn.disabled=true; const txtOrig=btn.textContent; btn.textContent='Guardando...';
   try{
-    const r=await apiPost('registrarMedicion',datos);
-    if(r&&r.error) throw new Error(r.error);
-    mediciones.push({ID_Medicion:(r&&r.id)||'tmp_'+Date.now(),...datos,Edad_Meses:mes,Z_Talla_Edad:zt,Z_Peso_Edad:zp});
-    saveCache(); toast('Medición guardada');
+    if(editingMedicion){
+      datos.ID_Medicion=editingMedicion;
+      const r=await apiPost('editarMedicion',datos);
+      if(r&&r.error) throw new Error(r.error);
+      const idx=mediciones.findIndex(x=>String(x.ID_Medicion)===String(editingMedicion));
+      if(idx>=0) mediciones[idx]={...mediciones[idx],...datos};
+      toast('Medición actualizada');
+    }else{
+      const r=await apiPost('registrarMedicion',datos);
+      if(r&&r.error) throw new Error(r.error);
+      mediciones.push({ID_Medicion:(r&&r.id)||'tmp_'+Date.now(),...datos});
+      toast('Medición guardada');
+    }
+    saveCache();
     closeModal('m-medicion');
     renderHistorial(); drawCurves(); renderAll();
     setTimeout(reloadAll, 1500);
   }catch(e){toast('No se pudo guardar: '+(e.message||'error de red'),true);}
-  finally{btn.disabled=false; btn.textContent='Guardar medición';}
+  finally{btn.disabled=false; btn.textContent=txtOrig;}
 }
 
 // ════════════ MODAL COMUNIDAD ════════════
