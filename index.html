@@ -756,8 +756,14 @@ function estadoNino(n){
   const um=ultimaMedicion(n.ID_Niño);
   if(!um) return {estado:'sin',zT:null,zP:null,um:null};
   const sinReciente = diasDesde(um.Fecha) > 180;
-  const zT = um.Z_Talla_Edad!==''&&um.Z_Talla_Edad!=null ? parseFloat(um.Z_Talla_Edad) : null;
-  const zP = um.Z_Peso_Edad!==''&&um.Z_Peso_Edad!=null ? parseFloat(um.Z_Peso_Edad) : null;
+  let zT = um.Z_Talla_Edad!==''&&um.Z_Talla_Edad!=null&&!isNaN(parseFloat(um.Z_Talla_Edad)) ? parseFloat(um.Z_Talla_Edad) : null;
+  let zP = um.Z_Peso_Edad!==''&&um.Z_Peso_Edad!=null&&!isNaN(parseFloat(um.Z_Peso_Edad)) ? parseFloat(um.Z_Peso_Edad) : null;
+  // recalcular si faltan (mediciones viejas)
+  if((zT==null||zP==null) && n.Fecha_Nacimiento && n.Sexo){
+    const edad=edadMeses(n.Fecha_Nacimiento, um.Fecha);
+    if(zT==null && !isNaN(numCO(um.Talla_cm))) zT=calcZ(numCO(um.Talla_cm),edad,n.Sexo,LMS_TALLA);
+    if(zP==null && !isNaN(numCO(um.Peso_kg)))  zP=calcZ(numCO(um.Peso_kg),edad,n.Sexo,LMS_PESO);
+  }
   let estado = estadoNutricional(zT);
   if(estado==='normal' && sinReciente) estado='sin';
   return {estado,zT,zP,um,sinReciente};
@@ -905,29 +911,39 @@ function backToFichas(){
   currentFicha=null;
 }
 function medicionesDe(id){return mediciones.filter(m=>m.ID_Niño===id).sort((a,b)=>new Date(a.Fecha)-new Date(b.Fecha));}
+// Completa edad y Z si faltan en el Sheet (mediciones viejas), recalculando en el front
+function normalizarMedicion(m){
+  const peso=numCO(m.Peso_kg), talla=numCO(m.Talla_cm);
+  let edad = (m.Edad_Meses!==''&&m.Edad_Meses!=null&&!isNaN(parseInt(m.Edad_Meses))) ? parseInt(m.Edad_Meses) : null;
+  if(edad==null && currentFicha && currentFicha.Fecha_Nacimiento) edad=edadMeses(currentFicha.Fecha_Nacimiento, m.Fecha);
+  let zt = (m.Z_Talla_Edad!==''&&m.Z_Talla_Edad!=null&&!isNaN(parseFloat(m.Z_Talla_Edad))) ? parseFloat(m.Z_Talla_Edad) : null;
+  let zp = (m.Z_Peso_Edad!==''&&m.Z_Peso_Edad!=null&&!isNaN(parseFloat(m.Z_Peso_Edad))) ? parseFloat(m.Z_Peso_Edad) : null;
+  if(zt==null && currentFicha && edad!=null && !isNaN(talla)) zt=calcZ(talla,edad,currentFicha.Sexo,LMS_TALLA);
+  if(zp==null && currentFicha && edad!=null && !isNaN(peso))  zp=calcZ(peso,edad,currentFicha.Sexo,LMS_PESO);
+  return {...m, _edad:edad, _peso:peso, _talla:talla, _zt:zt, _zp:zp};
+}
 function renderHistorial(){
-  const ms=medicionesDe(currentFicha.ID_Niño).slice().reverse();
+  const ms=medicionesDe(currentFicha.ID_Niño).map(normalizarMedicion).reverse();
   const body=document.getElementById('hist-body');
   if(!ms.length){body.innerHTML='<div class="empty" style="padding:36px;"><div class="empty-sub">Sin mediciones registradas</div></div>';return;}
   body.innerHTML=ms.map(m=>{
-    const zt=parseFloat(m.Z_Talla_Edad), zp=parseFloat(m.Z_Peso_Edad);
-    const cls=v=>isNaN(v)?'':v<-3?'z-sev':v<-2?'z-mod':'z-ok';
+    const cls=v=>v==null||isNaN(v)?'':v<-3?'z-sev':v<-2?'z-mod':'z-ok';
     return `<div class="hist-row">
       <div style="font-weight:600;">${fmtFecha(m.Fecha)}</div>
-      <div class="col-txt">${edadTexto(parseInt(m.Edad_Meses))}</div>
-      <div class="col-txt">${m.Peso_kg} kg</div>
-      <div class="col-txt">${m.Talla_cm} cm</div>
-      <div class="hist-z ${cls(zt)}">${isNaN(zt)?'—':zt}</div>
-      <div class="hist-z ${cls(zp)}">${isNaN(zp)?'—':zp}</div>
+      <div class="col-txt">${m._edad!=null?edadTexto(m._edad):'—'}</div>
+      <div class="col-txt">${isNaN(m._peso)?'—':m._peso+' kg'}</div>
+      <div class="col-txt">${isNaN(m._talla)?'—':m._talla+' cm'}</div>
+      <div class="hist-z ${cls(m._zt)}">${m._zt==null||isNaN(m._zt)?'—':m._zt}</div>
+      <div class="hist-z ${cls(m._zp)}">${m._zp==null||isNaN(m._zp)?'—':m._zp}</div>
     </div>`;
   }).join('');
 }
 async function drawCurves(){
   await ensureChart();
   const n=currentFicha, sexo=n.Sexo;
-  const ms=medicionesDe(n.ID_Niño);
-  buildCurve('curve-talla', LMS_TALLA, sexo, ms.map(m=>({x:parseInt(m.Edad_Meses),y:parseFloat(m.Talla_cm)})), 'cm');
-  buildCurve('curve-peso', LMS_PESO, sexo, ms.map(m=>({x:parseInt(m.Edad_Meses),y:parseFloat(m.Peso_kg)})), 'kg');
+  const ms=medicionesDe(n.ID_Niño).map(normalizarMedicion);
+  buildCurve('curve-talla', LMS_TALLA, sexo, ms.map(m=>({x:m._edad,y:m._talla})), 'cm');
+  buildCurve('curve-peso', LMS_PESO, sexo, ms.map(m=>({x:m._edad,y:m._peso})), 'kg');
 }
 function buildCurve(canvasId, tabla, sexo, puntos, unidad){
   if(charts[canvasId]) charts[canvasId].destroy();
