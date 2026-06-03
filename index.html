@@ -989,18 +989,19 @@ async function saveInfante(){
     if(editingInfante){
       datos.ID_Niño=editingInfante;
       const r=await apiPost('editarNino',datos);
-      if(r.error) throw 0;
+      if(r.error) throw new Error(r.error);
       const idx=ninos.findIndex(x=>x.ID_Niño===editingInfante);
       if(idx>=0) ninos[idx]={...ninos[idx],...datos};
       toast('Infante actualizado');
     }else{
       const r=await apiPost('crearNino',datos);
-      if(r.error||!r.ok) throw 0;
+      if(r.error) throw new Error(r.error);
+      if(!r.ok) throw new Error('Respuesta inesperada del servidor');
       ninos.push({ID_Niño:r.id,...datos,Activo:true});
       toast('Infante registrado');
     }
     saveCache(); renderAll(); closeModal('m-infante');
-  }catch(e){toast('No se pudo guardar',true);}
+  }catch(e){toast(e.message==='No autorizado'?'Tu correo no está en la hoja Usuarios':('No se pudo guardar: '+(e.message||'error')),true);}
   finally{btn.disabled=false; btn.textContent='Guardar';}
 }
 
