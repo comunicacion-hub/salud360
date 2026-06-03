@@ -552,8 +552,8 @@
         </select>
       </div>
       <div class="form-row-2">
-        <div class="form-grp"><label class="form-lbl">Peso (kg)</label><input class="form-inp" type="number" step="0.1" id="md-peso" placeholder="Ej. 9.6" oninput="previewZ()"></div>
-        <div class="form-grp"><label class="form-lbl">Talla (cm)</label><input class="form-inp" type="number" step="0.1" id="md-talla" placeholder="Ej. 77" oninput="previewZ()"></div>
+        <div class="form-grp"><label class="form-lbl">Peso (kg)</label><input class="form-inp" type="text" inputmode="decimal" id="md-peso" placeholder="Ej. 9,6" oninput="previewZ()"></div>
+        <div class="form-grp"><label class="form-lbl">Talla (cm)</label><input class="form-inp" type="text" inputmode="decimal" id="md-talla" placeholder="Ej. 77" oninput="previewZ()"></div>
       </div>
       <div class="z-preview" id="md-zpreview" style="display:none;">
         <div class="z-preview-item"><div class="z-preview-lbl">Z Talla/Edad</div><div class="z-preview-val" id="md-zt">—</div></div>
@@ -711,8 +711,17 @@ async function apiGet(accion, params={}){
   return r.json();
 }
 async function apiPost(accion, datos){
-  const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({accion,email:currentUser.email,datos}),cache:'no-store'});
-  return r.json();
+  // Apps Script no devuelve headers CORS en respuestas a POST cross-origin.
+  // Con no-cors la escritura SÍ se ejecuta, pero la respuesta es opaca (no se puede leer).
+  // Por eso devolvemos {ok:true} optimista y luego refrescamos con GET.
+  await fetch(SCRIPT_URL,{
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({accion,email:currentUser.email,datos}),
+    cache:'no-store'
+  });
+  return {ok:true};
 }
 
 // ════════════ ENTER APP / LOAD ════════════
@@ -988,20 +997,18 @@ async function saveInfante(){
   try{
     if(editingInfante){
       datos.ID_Niño=editingInfante;
-      const r=await apiPost('editarNino',datos);
-      if(r.error) throw new Error(r.error);
+      await apiPost('editarNino',datos);
       const idx=ninos.findIndex(x=>x.ID_Niño===editingInfante);
       if(idx>=0) ninos[idx]={...ninos[idx],...datos};
       toast('Infante actualizado');
     }else{
-      const r=await apiPost('crearNino',datos);
-      if(r.error) throw new Error(r.error);
-      if(!r.ok) throw new Error('Respuesta inesperada del servidor');
-      ninos.push({ID_Niño:r.id,...datos,Activo:true});
+      await apiPost('crearNino',datos);
+      ninos.push({ID_Niño:'tmp_'+Date.now(),...datos,Activo:true});
       toast('Infante registrado');
     }
     saveCache(); renderAll(); closeModal('m-infante');
-  }catch(e){toast(e.message==='No autorizado'?'Tu correo no está en la hoja Usuarios':('No se pudo guardar: '+(e.message||'error')),true);}
+    setTimeout(reloadAll, 1500);
+  }catch(e){toast('No se pudo guardar: '+(e.message||'error'),true);}
   finally{btn.disabled=false; btn.textContent='Guardar';}
 }
 
@@ -1017,14 +1024,17 @@ function openMedicionModal(){
   document.getElementById('md-zpreview').style.display='none';
   openModal('m-medicion');
 }
+// convierte texto con coma o punto a número (7,4 → 7.4)
+function numCO(v){if(v==null)return NaN;return parseFloat(String(v).replace(',','.').trim());}
 function previewZ(){
-  const peso=parseFloat(document.getElementById('md-peso').value);
-  const talla=parseFloat(document.getElementById('md-talla').value);
+  const peso=numCO(document.getElementById('md-peso').value);
+  const talla=numCO(document.getElementById('md-talla').value);
   const fecha=document.getElementById('md-fecha').value;
-  if(!fecha||(!peso&&!talla)){document.getElementById('md-zpreview').style.display='none';return;}
+  const hasP=!isNaN(peso), hasT=!isNaN(talla);
+  if(!fecha||(!hasP&&!hasT)){document.getElementById('md-zpreview').style.display='none';return;}
   const mes=edadMeses(currentFicha.Fecha_Nacimiento,fecha);
-  const zt=talla?calcZ(talla,mes,currentFicha.Sexo,LMS_TALLA):null;
-  const zp=peso?calcZ(peso,mes,currentFicha.Sexo,LMS_PESO):null;
+  const zt=hasT?calcZ(talla,mes,currentFicha.Sexo,LMS_TALLA):null;
+  const zp=hasP?calcZ(peso,mes,currentFicha.Sexo,LMS_PESO):null;
   const col=v=>v==null?'':v<-3?'#d11e54':v<-2?'#b97f08':'#0a9e83';
   document.getElementById('md-zpreview').style.display='flex';
   const et=document.getElementById('md-zt'), ep=document.getElementById('md-zp');
@@ -1034,9 +1044,12 @@ function previewZ(){
 }
 async function saveMedicion(){
   const fecha=document.getElementById('md-fecha').value;
-  const peso=document.getElementById('md-peso').value;
-  const talla=document.getElementById('md-talla').value;
-  if(!fecha||!peso||!talla){toast('Completa fecha, peso y talla',true);return;}
+  const peso=numCO(document.getElementById('md-peso').value);
+  const talla=numCO(document.getElementById('md-talla').value);
+  if(!fecha||isNaN(peso)||isNaN(talla)){toast('Completa fecha, peso y talla',true);return;}
+  const mes=edadMeses(currentFicha.Fecha_Nacimiento,fecha);
+  const zt=calcZ(talla,mes,currentFicha.Sexo,LMS_TALLA);
+  const zp=calcZ(peso,mes,currentFicha.Sexo,LMS_PESO);
   const datos={
     ID_Niño:currentFicha.ID_Niño, Fecha:fecha,
     Tipo_Actividad:document.getElementById('md-actividad').value,
@@ -1046,12 +1059,14 @@ async function saveMedicion(){
   };
   const btn=document.getElementById('md-save'); btn.disabled=true; btn.textContent='Guardando...';
   try{
-    const r=await apiPost('registrarMedicion',datos);
-    if(r.error||!r.ok) throw 0;
-    mediciones.push({ID_Medicion:r.id,...datos,Edad_Meses:r.edadMeses,Z_Talla_Edad:r.zTalla,Z_Peso_Edad:r.zPeso,Peso_kg:parseFloat(peso),Talla_cm:parseFloat(talla)});
+    await apiPost('registrarMedicion',datos);
+    // respuesta opaca (no-cors): agregamos localmente con Z calculados en el front
+    mediciones.push({ID_Medicion:'tmp_'+Date.now(),...datos,Edad_Meses:mes,Z_Talla_Edad:zt,Z_Peso_Edad:zp});
     saveCache(); toast('Medición guardada');
     closeModal('m-medicion');
     renderHistorial(); drawCurves(); renderAll();
+    // refresco silencioso desde el Sheet para traer el ID real
+    setTimeout(reloadAll, 1500);
   }catch(e){toast('No se pudo guardar la medición',true);}
   finally{btn.disabled=false; btn.textContent='Guardar medición';}
 }
@@ -1068,11 +1083,13 @@ async function saveComunidad(){
   const datos={Nombre:nombre,Zona:document.getElementById('cm-zona').value.trim()};
   const btn=document.getElementById('cm-save'); btn.disabled=true; btn.textContent='Guardando...';
   try{
-    const r=await apiPost('crearComunidad',datos);
-    if(r.error) throw 0;
-    comunidades.push({ID_Comunidad:r.id||('C'+(comunidades.length+1)),...datos});
-    saveCache(); renderConfig(); closeModal('m-comunidad'); toast('Comunidad agregada');
-  }catch(e){toast('No se pudo guardar (¿falta endpoint crearComunidad?)',true);}
+    await apiPost('crearComunidad',datos);
+    comunidades.push({ID_Comunidad:'tmp_'+Date.now(),...datos});
+    saveCache(); renderConfig();
+    fillComunidadSelect(document.getElementById('if-comunidad'),'');
+    closeModal('m-comunidad'); toast('Comunidad agregada');
+    setTimeout(reloadAll, 1500);
+  }catch(e){toast('No se pudo guardar la comunidad',true);}
   finally{btn.disabled=false; btn.textContent='Guardar';}
 }
 
