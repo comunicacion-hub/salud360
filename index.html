@@ -226,6 +226,12 @@
   .ficha-head{display:flex;align-items:center;gap:16px;}
   .ficha-info h3{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-0.5px;}
   .ficha-info p{font-size:13px;color:var(--text-muted);margin-top:3px;}
+  @media(max-width:768px){
+    #ficha-detail-view .page-header{flex-direction:column;align-items:stretch;gap:14px;}
+    #ficha-detail-view .hdr-actions{width:100%;}
+    #ficha-detail-view .hdr-actions .btn{width:100%;}
+    .ficha-info h3{font-size:18px;}
+  }
   .curve-wrap{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);padding:22px;}
   .curve-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;}
   .curve-title{font-size:15px;font-weight:700;color:var(--text);}
@@ -241,7 +247,20 @@
   .hist-z{font-weight:700;}
   @media(max-width:768px){
     .hist-head{display:none;}
-    .hist-row{grid-template-columns:1fr 1fr;gap:6px 12px;padding:14px 18px;}
+    .hist-row{
+      grid-template-columns:1fr 1fr auto;
+      grid-template-areas:"fecha fecha acts" "peso talla acts" "edad edad acts" "zt zp acts";
+      gap:8px 12px;padding:16px 18px;
+    }
+    .hist-row > :nth-child(1){grid-area:fecha;font-size:14px;}
+    .hist-row > :nth-child(2){grid-area:edad;font-size:12px;color:var(--text-dim);}
+    .hist-row > :nth-child(3){grid-area:peso;}
+    .hist-row > :nth-child(4){grid-area:talla;}
+    .hist-row > :nth-child(5){grid-area:zt;font-size:14px;}
+    .hist-row > :nth-child(5)::before{content:'Z T/E: ';font-weight:400;color:var(--text-dim);font-size:11px;}
+    .hist-row > :nth-child(6){grid-area:zp;font-size:14px;}
+    .hist-row > :nth-child(6)::before{content:'Z P/E: ';font-weight:400;color:var(--text-dim);font-size:11px;}
+    .hist-acts{grid-area:acts;flex-direction:column;align-self:center;}
   }
 
   /* ── ACCESOS / CONFIG CARDS ── */
@@ -1034,18 +1053,20 @@ async function saveInfante(){
 // ════════════ MODAL MEDICIÓN ════════════
 let editingMedicion=null;
 function openMedicionModal(){
-  if(!currentFicha){toast('Abre una ficha primero',true);return;}
-  editingMedicion=null;
-  document.querySelector('#m-medicion .modal-title').textContent='Nueva medición';
-  document.getElementById('md-sub').textContent=currentFicha.Nombres;
-  document.getElementById('md-fecha').value=new Date().toISOString().slice(0,10);
-  document.getElementById('md-actividad').value='Consejería personalizada';
-  document.getElementById('md-peso').value='';
-  document.getElementById('md-talla').value='';
-  document.getElementById('md-obs').value='';
-  document.getElementById('md-zpreview').style.display='none';
-  document.getElementById('md-save').textContent='Guardar medición';
-  openModal('m-medicion');
+  try{
+    if(!currentFicha){toast('Abre una ficha primero',true);return;}
+    editingMedicion=null;
+    const t=document.querySelector('#m-medicion .modal-title'); if(t)t.textContent='Nueva medición';
+    document.getElementById('med-sub').textContent=currentFicha.Nombres||'';
+    document.getElementById('md-fecha').value=new Date().toISOString().slice(0,10);
+    document.getElementById('md-actividad').value='Consejería personalizada';
+    document.getElementById('md-peso').value='';
+    document.getElementById('md-talla').value='';
+    document.getElementById('md-obs').value='';
+    document.getElementById('md-zpreview').style.display='none';
+    document.getElementById('md-save').textContent='Guardar medición';
+    openModal('m-medicion');
+  }catch(e){toast('Error al abrir: '+e.message,true);}
 }
 function editMedicion(id){
   const m=mediciones.find(x=>String(x.ID_Medicion)===String(id)); if(!m){toast('Medición no encontrada',true);return;}
