@@ -659,9 +659,21 @@ function valFromZ(z, mes, sexo, tabla){
   const [L,M,S] = tabla[sexo][mes];
   return Math.abs(L)<1e-4 ? M*Math.exp(S*z) : M*Math.pow(1+L*S*z,1/L);
 }
+// parsea 'YYYY-MM-DD' como fecha LOCAL (evita corrimiento por zona horaria)
+function parseFechaLocal(f){
+  if(!f) return null;
+  const s=String(f).slice(0,10);
+  const p=s.split('-');
+  if(p.length===3) return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+  const d=new Date(f); return isNaN(d)?null:d;
+}
 function edadMeses(fnac, fmed){
-  const a=new Date(fnac), b=new Date(fmed);
-  return (b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth());
+  const a=parseFechaLocal(fnac), b=parseFechaLocal(fmed);
+  if(!a||!b) return null;
+  let meses=(b.getFullYear()-a.getFullYear())*12 + (b.getMonth()-a.getMonth());
+  // si aún no llegó el día del mes, no se cumplió ese mes completo
+  if(b.getDate() < a.getDate()) meses--;
+  return Math.max(0, meses);
 }
 function edadTexto(meses){
   if(meses==null) return '—';
@@ -1261,8 +1273,8 @@ function confirmAction(){if(confirmCb)confirmCb();closeModal('m-confirm');}
 
 function doLogout(){clearSession();cancelGooglePrompt();location.reload();}
 function toast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(err?' error':'');setTimeout(()=>t.className='',2800);}
-function fmtFecha(f){if(!f)return'—';const d=new Date(f);if(isNaN(d))return f;return d.toLocaleDateString('es-EC',{day:'2-digit',month:'short',year:'numeric'});}
-function fmtInputDate(f){if(!f)return'';const d=new Date(f);if(isNaN(d))return'';return d.toISOString().slice(0,10);}
+function fmtFecha(f){if(!f)return'—';const d=parseFechaLocal(f);if(!d)return f;return d.toLocaleDateString('es-EC',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtInputDate(f){if(!f)return'';const d=parseFechaLocal(f);if(!d)return'';const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${dd}`;}
 
 // ════════════ INIT ════════════
 window.addEventListener('load',()=>{
