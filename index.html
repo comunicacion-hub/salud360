@@ -1043,10 +1043,15 @@ function previewZ(){
   document.getElementById('md-edad').textContent=edadTexto(mes);
 }
 async function saveMedicion(){
+  if(!currentFicha){toast('Error: no hay ficha abierta. Cierra y vuelve a abrir.',true);return;}
   const fecha=document.getElementById('md-fecha').value;
   const peso=numCO(document.getElementById('md-peso').value);
   const talla=numCO(document.getElementById('md-talla').value);
-  if(!fecha||isNaN(peso)||isNaN(talla)){toast('Completa fecha, peso y talla',true);return;}
+  if(!fecha){toast('Falta la fecha',true);return;}
+  if(isNaN(peso)){toast('Escribe el peso (ej. 9,6)',true);return;}
+  if(isNaN(talla)){toast('Escribe la talla (ej. 77)',true);return;}
+  if(!currentFicha.Fecha_Nacimiento){toast('El infante no tiene fecha de nacimiento',true);return;}
+  if(!currentFicha.Sexo){toast('El infante no tiene sexo registrado',true);return;}
   const mes=edadMeses(currentFicha.Fecha_Nacimiento,fecha);
   const zt=calcZ(talla,mes,currentFicha.Sexo,LMS_TALLA);
   const zp=calcZ(peso,mes,currentFicha.Sexo,LMS_PESO);
@@ -1060,14 +1065,12 @@ async function saveMedicion(){
   const btn=document.getElementById('md-save'); btn.disabled=true; btn.textContent='Guardando...';
   try{
     await apiPost('registrarMedicion',datos);
-    // respuesta opaca (no-cors): agregamos localmente con Z calculados en el front
     mediciones.push({ID_Medicion:'tmp_'+Date.now(),...datos,Edad_Meses:mes,Z_Talla_Edad:zt,Z_Peso_Edad:zp});
     saveCache(); toast('Medición guardada');
     closeModal('m-medicion');
     renderHistorial(); drawCurves(); renderAll();
-    // refresco silencioso desde el Sheet para traer el ID real
     setTimeout(reloadAll, 1500);
-  }catch(e){toast('No se pudo guardar la medición',true);}
+  }catch(e){toast('No se pudo guardar: '+(e.message||'error de red'),true);}
   finally{btn.disabled=false; btn.textContent='Guardar medición';}
 }
 
