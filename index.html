@@ -63,7 +63,7 @@
   }
   @media(max-width:768px){
     .bottom-nav{bottom:calc(14px + env(safe-area-inset-bottom));padding:8px 10px;gap:2px;}
-    .bn-item{width:42px;height:42px;}
+    .bn-item{width:48px;height:48px;}
     .bn-item svg{width:20px;height:20px;}
   }
 
@@ -156,6 +156,13 @@
   .filter-drawer-foot .btn{flex:1;}
   .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.32);backdrop-filter:blur(3px);z-index:119;opacity:0;visibility:hidden;transition:opacity 0.3s,visibility 0.3s;}
   .drawer-overlay.open{opacity:1;visibility:visible;}
+  @media(max-width:768px){
+    .filter-drawer{
+      top:auto;right:0;bottom:-90dvh;width:100vw;max-width:100vw;height:85dvh;
+      border-radius:24px 24px 0 0;transition:bottom 0.28s cubic-bezier(0.4,0,0.2,1);box-shadow:0 -12px 32px rgba(0,0,0,0.12);
+    }
+    .filter-drawer.open{right:0;bottom:0;}
+  }
 
   /* ── TABLE / LIST ── */
   .tbl-wrap{border-radius:24px;overflow:hidden;border:none;box-shadow:var(--shadow);background:var(--surface);}
@@ -330,7 +337,7 @@
   @media(max-width:768px){.login-card{width:92vw;padding:36px 24px;}.form-lbl{font-size:14px;}.form-inp{font-size:16px;}}
 
   /* ── TOAST ── */
-  #toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:#222;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.2);opacity:0;visibility:hidden;transition:all 0.25s;max-width:90vw;text-align:center;}
+  #toast{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:#222;color:#fff;padding:13px 22px;border-radius:14px;font-size:14px;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,0.2);opacity:0;visibility:hidden;transition:all 0.25s;max-width:90vw;text-align:center;}
   #toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
   #toast.error{background:#c91a44;}
 
@@ -376,14 +383,14 @@
           <div class="page-sub" id="today-date"></div>
         </div>
         <div class="hdr-actions">
-          <button class="hdr-circle" id="btn-filter-alertas" onclick="openDrawer('alertas')" title="Filtrar">
+          <button class="hdr-circle" id="btn-filter-alertas" onclick="openDrawer('alertas')" title="Filtrar" aria-label="Filtrar alertas">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
             <span class="filter-badge" id="badge-alertas" style="display:none;">0</span>
           </button>
-          <button class="hdr-circle" id="btn-sync" onclick="reloadAll()" title="Actualizar">
+          <button class="hdr-circle" id="btn-sync" onclick="reloadAll()" title="Actualizar" aria-label="Actualizar datos">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           </button>
-          <button class="hdr-circle hdr-circle-danger" onclick="doLogout()" title="Cerrar sesión">
+          <button class="hdr-circle hdr-circle-danger" onclick="doLogout()" title="Cerrar sesión" aria-label="Cerrar sesión">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
         </div>
@@ -411,7 +418,7 @@
         </div>
         <div class="filters-row" style="margin:8px 0 4px;">
           <div class="search-wrap">
-            <input class="search-input" id="ficha-search" placeholder="Buscar por nombre..." oninput="renderFichasList()">
+            <input class="search-input" id="ficha-search" placeholder="Buscar por nombre..." oninput="debouncedRenderFichasList()">
             <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
           </div>
         </div>
@@ -422,7 +429,7 @@
       <div id="ficha-detail-view" style="display:none;">
         <div class="page-header">
           <div class="ficha-head">
-            <button class="hdr-circle" onclick="backToFichas()" title="Volver">
+            <button class="hdr-circle" onclick="backToFichas()" title="Volver" aria-label="Volver a fichas">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             </button>
             <div class="avatar avatar-lg" id="fd-avatar">—</div>
@@ -432,7 +439,7 @@
             </div>
           </div>
           <div class="hdr-actions">
-            <button class="btn btn-primary" onclick="openMedicionModal()">+ Medición</button>
+            <button class="btn btn-primary" onclick="openMedicionModal()" title="Agregar medición" aria-label="Agregar medición">+</button>
           </div>
         </div>
 
@@ -463,18 +470,18 @@
           <div class="page-sub" id="infantes-sub">—</div>
         </div>
         <div class="hdr-actions">
-          <button class="hdr-circle" onclick="openDrawer('infantes')" title="Filtrar">
+          <button class="hdr-circle" onclick="openDrawer('infantes')" title="Filtrar" aria-label="Filtrar infantes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
             <span class="filter-badge" id="badge-infantes" style="display:none;">0</span>
           </button>
-          <button class="hdr-circle hdr-circle-primary" onclick="openInfanteModal()" title="Nuevo infante">
+          <button class="hdr-circle hdr-circle-primary" onclick="openInfanteModal()" title="Nuevo infante" aria-label="Nuevo infante">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         </div>
       </div>
       <div class="filters-row">
         <div class="search-wrap">
-          <input class="search-input" id="inf-search" placeholder="Buscar por nombre..." oninput="renderInfantes()">
+          <input class="search-input" id="inf-search" placeholder="Buscar por nombre..." oninput="debouncedRenderInfantes()">
           <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         </div>
       </div>
@@ -502,17 +509,17 @@
 
   <!-- ─── BOTTOM NAV ─── -->
   <nav class="bottom-nav">
-    <button class="bn-item active" id="nav-alertas" onclick="go('alertas')" title="Alertas">
+    <button class="bn-item active" id="nav-alertas" onclick="go('alertas')" title="Alertas" aria-label="Ir a alertas" aria-current="page">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <span class="nav-badge" id="nav-badge-alertas" style="display:none;">0</span>
     </button>
-    <button class="bn-item" id="nav-fichas" onclick="go('fichas')" title="Fichas">
+    <button class="bn-item" id="nav-fichas" onclick="go('fichas')" title="Fichas" aria-label="Ir a fichas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
     </button>
-    <button class="bn-item" id="nav-infantes" onclick="go('infantes')" title="Infantes">
+    <button class="bn-item" id="nav-infantes" onclick="go('infantes')" title="Infantes" aria-label="Ir a infantes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     </button>
-    <button class="bn-item" id="nav-config" onclick="go('config')" title="Configuración" style="display:none;">
+    <button class="bn-item" id="nav-config" onclick="go('config')" title="Configuración" aria-label="Ir a configuración" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </nav>
@@ -520,10 +527,10 @@
 
 <!-- ═══ DRAWER FILTROS ═══ -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="filter-drawer" id="filter-drawer">
+<div class="filter-drawer" id="filter-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
   <div class="filter-drawer-head">
     <div class="filter-drawer-title" id="drawer-title">Filtros</div>
-    <button class="modal-close" onclick="closeDrawer()">✕</button>
+    <button class="modal-close" onclick="closeDrawer()" aria-label="Cerrar filtros">✕</button>
   </div>
   <div class="filter-drawer-body" id="drawer-body"></div>
   <div class="filter-drawer-foot">
@@ -534,10 +541,10 @@
 
 <!-- ═══ MODAL INFANTE ═══ -->
 <div class="modal-overlay" id="m-infante">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-infante-title">
     <div class="modal-head">
       <div><div class="modal-title" id="m-infante-title">Nuevo infante</div><div class="modal-sub">Datos del niño o niña</div></div>
-      <button class="modal-close" onclick="closeModal('m-infante')">✕</button>
+      <button class="modal-close" onclick="closeModal('m-infante')" aria-label="Cerrar">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grp"><label class="form-lbl">Nombres completos</label><input class="form-inp" id="if-nombres" placeholder="Ej. María José Pérez"></div>
@@ -556,10 +563,10 @@
 
 <!-- ═══ MODAL MEDICIÓN ═══ -->
 <div class="modal-overlay" id="m-medicion">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true">
     <div class="modal-head">
       <div><div class="modal-title">Nueva medición</div><div class="modal-sub" id="med-sub">—</div></div>
-      <button class="modal-close" onclick="closeModal('m-medicion')">✕</button>
+      <button class="modal-close" onclick="closeModal('m-medicion')" aria-label="Cerrar">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grp"><label class="form-lbl">Fecha de la medición</label><input class="form-inp" type="date" id="md-fecha" onchange="previewZ()"></div>
@@ -572,8 +579,8 @@
         </select>
       </div>
       <div class="form-row-2">
-        <div class="form-grp"><label class="form-lbl">Peso (kg)</label><input class="form-inp" type="text" inputmode="decimal" id="md-peso" placeholder="Ej. 9,6" oninput="previewZ()"></div>
-        <div class="form-grp"><label class="form-lbl">Talla (cm)</label><input class="form-inp" type="text" inputmode="decimal" id="md-talla" placeholder="Ej. 77" oninput="previewZ()"></div>
+        <div class="form-grp"><label class="form-lbl">Peso (kg)</label><input class="form-inp" type="text" inputmode="decimal" autocomplete="off" id="md-peso" placeholder="Ej. 9,6" oninput="previewZ()"></div>
+        <div class="form-grp"><label class="form-lbl">Talla (cm)</label><input class="form-inp" type="text" inputmode="decimal" autocomplete="off" id="md-talla" placeholder="Ej. 77" oninput="previewZ()"></div>
       </div>
       <div class="z-preview" id="md-zpreview" style="display:none;">
         <div class="z-preview-item"><div class="z-preview-lbl">Z Talla/Edad</div><div class="z-preview-val" id="md-zt">—</div></div>
@@ -591,8 +598,8 @@
 
 <!-- ═══ MODAL COMUNIDAD ═══ -->
 <div class="modal-overlay" id="m-comunidad">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-head"><div class="modal-title">Nueva comunidad</div><button class="modal-close" onclick="closeModal('m-comunidad')">✕</button></div>
+  <div class="modal" style="max-width:480px;" role="dialog" aria-modal="true">
+    <div class="modal-head"><div class="modal-title">Nueva comunidad</div><button class="modal-close" onclick="closeModal('m-comunidad')" aria-label="Cerrar">✕</button></div>
     <div class="modal-body">
       <div class="form-grp"><label class="form-lbl">Nombre de la comunidad</label><input class="form-inp" id="cm-nombre" placeholder="Ej. El Tambo"></div>
       <div class="form-grp"><label class="form-lbl">Zona (opcional)</label><input class="form-inp" id="cm-zona" placeholder="Ej. Norte"></div>
@@ -606,8 +613,8 @@
 
 <!-- ═══ MODAL CONFIRMAR ═══ -->
 <div class="modal-overlay" id="m-confirm">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-head"><div class="modal-title" id="cf-title">¿Eliminar?</div><button class="modal-close" onclick="closeModal('m-confirm')">✕</button></div>
+  <div class="modal" style="max-width:420px;" role="dialog" aria-modal="true" aria-labelledby="cf-title">
+    <div class="modal-head"><div class="modal-title" id="cf-title">¿Eliminar?</div><button class="modal-close" onclick="closeModal('m-confirm')" aria-label="Cerrar">✕</button></div>
     <div class="modal-body"><p id="cf-msg" style="font-size:15px;color:var(--text-muted);line-height:1.6;">—</p></div>
     <div class="modal-foot">
       <button class="btn btn-glass" onclick="closeModal('m-confirm')">Cancelar</button>
@@ -698,7 +705,7 @@ function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({ts:Date.
 function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');if(!c.ts||Date.now()-c.ts>CACHE_TTL)return null;return c;}catch(e){return null;}}
 function saveSession(u){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify(u));}catch(e){}}
 function loadSession(){try{const s=sessionStorage.getItem(SESSION_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
-function clearSession(){try{sessionStorage.removeItem(SESSION_KEY);}catch(e){}}
+function clearSession(){try{sessionStorage.removeItem(SESSION_KEY);localStorage.removeItem(CACHE_KEY);}catch(e){}}
 
 // ════════════ GOOGLE LOGIN ════════════
 let googleBtnRendered=false;
@@ -809,8 +816,22 @@ function avatarGrad(nombre){
 }
 function iniciales(nombre){return (nombre||'?').split(' ').filter(Boolean).slice(0,2).map(s=>s[0]).join('').toUpperCase();}
 
+// Escapa texto dinámico antes de insertarlo con innerHTML (mitiga XSS desde datos del backend/cache)
+function esc(v){
+  return String(v ?? '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+function escAttr(v){ return esc(v).replaceAll('`','&#096;'); }
+
 // ════════════ RENDER ALL ════════════
 function renderAll(){renderAlertas();renderFichasList();renderInfantes();renderConfig();}
+function debounce(fn, wait=180){let t;return (...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait);};}
+const debouncedRenderFichasList = debounce(renderFichasList);
+const debouncedRenderInfantes = debounce(renderInfantes);
 
 // ─── ALERTAS ───
 function renderAlertas(){
@@ -848,7 +869,7 @@ function renderAlertas(){
     return `<div class="alert-card ${e.estado}" onclick="abrirFicha('${e.n.ID_Niño}')">
       <div class="alert-head">
         <div class="avatar" style="background:${avatarGrad(e.n.Nombres)}">${iniciales(e.n.Nombres)}</div>
-        <div><div class="alert-name">${e.n.Nombres}</div><div class="alert-meta">${e.n.Comunidad||'—'} · ${metaTxt}</div></div>
+        <div><div class="alert-name">${esc(e.n.Nombres)}</div><div class="alert-meta">${esc(e.n.Comunidad||'—')} · ${esc(metaTxt)}</div></div>
       </div>
       <div class="alert-z-row">
         <div class="z-chip"><div class="z-chip-lbl">Talla / Edad</div><div class="z-chip-val">${e.zT==null?'—':fmtNum(e.zT)}</div>${zTtag}</div>
@@ -896,9 +917,9 @@ function rowNino(n, esFicha){
     : `<button class="icon-btn" title="Editar" onclick="event.stopPropagation();editInfante('${n.ID_Niño}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`;
   const onclick = esFicha ? `abrirFicha('${n.ID_Niño}')` : `abrirFicha('${n.ID_Niño}')`;
   return `<div class="tbl-row" onclick="${onclick}">
-    <div class="col-name"><div class="avatar" style="background:${avatarGrad(n.Nombres)}">${iniciales(n.Nombres)}</div><span>${n.Nombres}</span></div>
-    <div class="col-txt cell-com">${n.Comunidad||'—'}</div>
-    <div class="col-txt cell-edad">${edad}</div>
+    <div class="col-name"><div class="avatar" style="background:${avatarGrad(n.Nombres)}">${iniciales(n.Nombres)}</div><span>${esc(n.Nombres)}</span></div>
+    <div class="col-txt cell-com">${esc(n.Comunidad||'—')}</div>
+    <div class="col-txt cell-edad">${esc(edad)}</div>
     <div class="cell-estado">${badge}</div>
     <div class="row-acts">${acts}</div>
   </div>`;
@@ -907,9 +928,9 @@ function rowNino(n, esFicha){
 // ─── CONFIG ───
 function renderConfig(){
   const cc=document.getElementById('config-comunidades');
-  cc.innerHTML = comunidades.length ? comunidades.map(c=>`<div class="acc-card"><div class="acc-title">${c.Nombre}</div><div class="acc-sub">${c.Zona||'Sin zona'}</div></div>`).join('') : '<div class="acc-sub" style="grid-column:1/-1;color:var(--text-dim);">Aún no hay comunidades.</div>';
+  cc.innerHTML = comunidades.length ? comunidades.map(c=>`<div class="acc-card"><div class="acc-title">${esc(c.Nombre)}</div><div class="acc-sub">${esc(c.Zona||'Sin zona')}</div></div>`).join('') : '<div class="acc-sub" style="grid-column:1/-1;color:var(--text-dim);">Aún no hay comunidades.</div>';
   const cu=document.getElementById('config-usuarios');
-  cu.innerHTML = usuarios.length ? usuarios.map(u=>`<div class="acc-card" style="--acc-grad:var(--grad-b)"><div class="acc-title">${u.Nombre||u.Email}</div><div class="acc-sub">${u.Email} · ${u.Rol||'—'}</div></div>`).join('') : '<div class="acc-sub" style="grid-column:1/-1;color:var(--text-dim);">Aún no hay usuarios registrados.</div>';
+  cu.innerHTML = usuarios.length ? usuarios.map(u=>`<div class="acc-card" style="--acc-grad:var(--grad-b)"><div class="acc-title">${esc(u.Nombre||u.Email)}</div><div class="acc-sub">${esc(u.Email)} · ${esc(u.Rol||'—')}</div></div>`).join('') : '<div class="acc-sub" style="grid-column:1/-1;color:var(--text-dim);">Aún no hay usuarios registrados.</div>';
 }
 
 // ════════════ FICHA DETALLE + CURVAS ════════════
@@ -933,7 +954,7 @@ function abrirFicha(id){
   document.getElementById('fd-avatar').textContent=iniciales(n.Nombres);
   document.getElementById('fd-name').textContent=n.Nombres;
   const sexoTxt = n.Sexo==='M'?'Niño':n.Sexo==='F'?'Niña':'—';
-  document.getElementById('fd-meta').textContent=`${sexoTxt} · ${n.Comunidad||'—'} · Nac. ${fmtFecha(n.Fecha_Nacimiento)}`;
+  document.getElementById('fd-meta').textContent=`${sexoTxt} · ${esc(n.Comunidad||'—')} · Nac. ${fmtFecha(n.Fecha_Nacimiento)}`;
   renderHistorial();
   drawCurves();
 }
@@ -962,12 +983,12 @@ function renderHistorial(){
     const cls=v=>v==null||isNaN(v)?'':v<-3?'z-sev':v<-2?'z-mod':'z-ok';
     const id=m.ID_Medicion;
     return `<div class="hist-row">
-      <div style="font-weight:600;">${fmtFecha(m.Fecha)}</div>
-      <div class="col-txt">${m._edad!=null?edadTexto(m._edad):'—'}</div>
-      <div class="col-txt">${isNaN(m._peso)?'—':fmtNum(m._peso)+' kg'}</div>
-      <div class="col-txt">${isNaN(m._talla)?'—':fmtNum(m._talla)+' cm'}</div>
-      <div class="hist-z ${cls(m._zt)}">${m._zt==null||isNaN(m._zt)?'—':fmtNum(m._zt)}</div>
-      <div class="hist-z ${cls(m._zp)}">${m._zp==null||isNaN(m._zp)?'—':fmtNum(m._zp)}</div>
+      <div style="font-weight:600;">${esc(fmtFecha(m.Fecha))}</div>
+      <div class="col-txt">${esc(m._edad!=null?edadTexto(m._edad):'—')}</div>
+      <div class="col-txt">${esc(isNaN(m._peso)?'—':fmtNum(m._peso)+' kg')}</div>
+      <div class="col-txt">${esc(isNaN(m._talla)?'—':fmtNum(m._talla)+' cm')}</div>
+      <div class="hist-z ${cls(m._zt)}">${esc(m._zt==null||isNaN(m._zt)?'—':fmtNum(m._zt))}</div>
+      <div class="hist-z ${cls(m._zp)}">${esc(m._zp==null||isNaN(m._zp)?'—':fmtNum(m._zp))}</div>
       <div class="hist-acts">
         <button class="icon-btn" title="Editar" onclick="editMedicion('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
         <button class="icon-btn del" title="Eliminar" onclick="delMedicion('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -1014,7 +1035,7 @@ function n_label(){return currentFicha?currentFicha.Nombres.split(' ')[0]:'Infan
 // ════════════ MODAL INFANTE ════════════
 let editingInfante=null;
 function fillComunidadSelect(sel, val){
-  sel.innerHTML='<option value="">Selecciona</option>'+comunidades.map(c=>`<option value="${c.Nombre}" ${c.Nombre===val?'selected':''}>${c.Nombre}</option>`).join('');
+  sel.innerHTML='<option value="">Selecciona</option>'+comunidades.map(c=>`<option value="${esc(c.Nombre)}" ${c.Nombre===val?'selected':''}>${esc(c.Nombre)}</option>`).join('');
 }
 function openInfanteModal(){
   editingInfante=null;
@@ -1228,7 +1249,7 @@ function drawerSection(title, opts, withSearch){
   return `<div class="filter-section open"><button class="filter-section-head" onclick="this.parentElement.classList.toggle('open')">${title}<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="filter-section-body">${search}${opts.join('')}</div></div>`;
 }
 function filterOpt(group,val,label,checked){
-  return `<label class="filter-opt" data-label="${label.toLowerCase()}"><input type="checkbox" data-group="${group}" value="${val}" ${checked?'checked':''}>${label}</label>`;
+  return `<label class="filter-opt" data-label="${escAttr(label.toLowerCase())}"><input type="checkbox" data-group="${escAttr(group)}" value="${escAttr(val)}" ${checked?'checked':''}>${esc(label)}</label>`;
 }
 function filterDrawerOpts(inp){
   const q=inp.value.toLowerCase();
@@ -1262,8 +1283,8 @@ function go(screen){
   currentScreen=screen;
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
-  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('nav-'+screen).classList.add('active');
+  document.querySelectorAll('.bn-item').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});
+  const navBtn=document.getElementById('nav-'+screen); navBtn.classList.add('active'); navBtn.setAttribute('aria-current','page');
   window.scrollTo(0,0);
 }
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
@@ -1277,6 +1298,12 @@ function fmtFecha(f){if(!f)return'—';const d=parseFechaLocal(f);if(!d)return f
 function fmtInputDate(f){if(!f)return'';const d=parseFechaLocal(f);if(!d)return'';const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${dd}`;}
 
 // ════════════ INIT ════════════
+window.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    closeDrawer();
+    document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id));
+  }
+});
 window.addEventListener('load',()=>{
   const s=loadSession();
   if(s){currentUser=s;enterApp();}
